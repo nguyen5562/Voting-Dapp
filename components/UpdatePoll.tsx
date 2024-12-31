@@ -1,10 +1,16 @@
+import { updatePoll } from '@/services/blockchain'
+import { globalActions } from '@/store/globalSlices'
 import { formatTimestamp } from '@/utils/helper'
-import { PollParams, PollStruct } from '@/utils/types'
+import { PollParams, PollStruct, RootState } from '@/utils/types'
 import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
+import { useDispatch, useSelector } from 'react-redux'
+import { toast } from 'react-toastify'
 
 const UpdatePoll: React.FC<{ pollData: PollStruct }> = ({ pollData }) => {
-  const updateModal = 'scale-0'
+  const dispatch = useDispatch()
+  const { setUpdateModal } = globalActions
+  const { wallet, updateModal } = useSelector((states: RootState) => states.globalStates)
 
   const [poll, setPoll] = useState<PollParams>({
     image: '',
@@ -31,12 +37,27 @@ const UpdatePoll: React.FC<{ pollData: PollStruct }> = ({ pollData }) => {
     e.preventDefault()
 
     if (!poll.image || !poll.title || !poll.description || !poll.startsAt || !poll.endsAt) return
+    if (wallet === '') return toast.warning('Connect wallet first!')
 
     poll.startsAt = new Date(poll.startsAt).getTime()
     poll.endsAt = new Date(poll.endsAt).getTime()
 
-    console.log(poll)
-    closeModal()
+    await toast.promise(
+      new Promise<void>((resolve, reject) => {
+        updatePoll(pollData.id, poll)
+          .then((tx) => {
+            closeModal()
+            console.log(tx)
+            resolve(tx)
+          })
+          .catch((error) => reject(error))
+      }),
+      {
+        pending: 'Approve transaction...',
+        success: 'Poll updated successfully 👌',
+        error: 'Encountered error 🤯',
+      }
+    )
   }
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -47,7 +68,9 @@ const UpdatePoll: React.FC<{ pollData: PollStruct }> = ({ pollData }) => {
     }))
   }
 
-  const closeModal = () => {}
+  const closeModal = () => {
+    dispatch(setUpdateModal('scale-0'))
+  }
 
   return (
     <div

@@ -5,18 +5,34 @@ import Contestants from '@/components/Contestants'
 import Head from 'next/head'
 import ContestPoll from '@/components/ContestPoll'
 import { GetServerSidePropsContext } from 'next'
-import { ContestantStruct, PollStruct } from '@/utils/types'
+import { ContestantStruct, PollStruct, RootState } from '@/utils/types'
 import UpdatePoll from '@/components/UpdatePoll'
 import DeletePoll from '@/components/DeletePoll'
-import { generateFakeContestants, generateFakePolls } from '@/services/data'
+import { useDispatch, useSelector } from 'react-redux'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
+import { globalActions } from '@/store/globalSlices'
+import { getContestants, getPoll } from '@/services/blockchain'
 
 export default function Polls({
-  poll,
-  contestants,
+  pollData,
+  contestantData,
 }: {
-  poll: PollStruct
-  contestants: ContestantStruct[]
+  pollData: PollStruct
+  contestantData: ContestantStruct[]
 }) {
+  const dispatch = useDispatch()
+  const { setPoll, setContestants } = globalActions
+  const { poll, contestants } = useSelector(
+    (states: RootState) => states.globalStates
+  )
+  const router = useRouter()
+
+  useEffect(() => {
+    dispatch(setPoll(pollData))
+    dispatch(setContestants(contestantData))
+  }, [dispatch, setPoll, pollData, setContestants, contestantData])
+
   return (
     <>
       {poll && (
@@ -50,13 +66,13 @@ export default function Polls({
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { id } = context.query
-  const pollData = generateFakePolls(1)[0]
-  const contestantData = generateFakeContestants(2)
+  const pollData = await getPoll(Number(id))
+  const contestantData = await getContestants(Number(id))
 
   return {
     props: {
-      poll: JSON.parse(JSON.stringify(pollData)),
-      contestants: JSON.parse(JSON.stringify(contestantData)),
+      pollData: JSON.parse(JSON.stringify(pollData)),
+      contestantData: JSON.parse(JSON.stringify(contestantData)),
     },
   }
 }

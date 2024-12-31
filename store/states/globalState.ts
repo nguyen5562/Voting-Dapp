@@ -9,7 +9,5 @@ export const globalStates: GlobalState = {
   chatModal: 'scale-0',
   polls: [],
   poll: null,
-  group: null,
   contestants: [],
-  currentUser: null,
 }

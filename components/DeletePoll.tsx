@@ -1,17 +1,43 @@
-import { PollStruct } from '@/utils/types'
+import { PollStruct, RootState } from '@/utils/types'
 import { BsTrash3Fill } from 'react-icons/bs'
 import React from 'react'
 import { FaTimes } from 'react-icons/fa'
+import { useDispatch, useSelector } from 'react-redux'
+import { globalActions } from '@/store/globalSlices'
+import { useRouter } from 'next/router'
+import { toast } from 'react-toastify'
+import { deletePoll } from '@/services/blockchain'
 
 const DeletePoll: React.FC<{ poll: PollStruct }> = ({ poll }) => {
-  const deleteModal = 'scale-0'
+  const dispatch = useDispatch()
+  const { setDeleteModal } = globalActions
+  const { wallet, deleteModal } = useSelector((states: RootState) => states.globalStates)
+  const router = useRouter()
 
   const handleDelete = async () => {
-    console.log(poll)
-    closeModal()
+    if (wallet === '') return toast.warning('Connect wallet first!')
+    await toast.promise(
+      new Promise<void>((resolve, reject) => {
+        deletePoll(poll.id)
+          .then((tx) => {
+            closeModal()
+            console.log(tx)
+            router.push('/')
+            resolve(tx)
+          })
+          .catch((error) => reject(error))
+      }),
+      {
+        pending: 'Approve transaction...',
+        success: 'Poll deleted successfully 👌',
+        error: 'Encountered error 🤯',
+      }
+    )
   }
 
-  const closeModal = () => {}
+  const closeModal = () => {
+    dispatch(setDeleteModal('scale-0'))
+  }
 
   return (
     <div
@@ -31,7 +57,7 @@ const DeletePoll: React.FC<{ poll: PollStruct }> = ({ poll }) => {
             <div className="flex flex-col justify-center items-center rounded-xl my-5 space-y-2">
               <BsTrash3Fill className="text-red-600" size={50} />
               <h4 className="text-[22.65px]">Delete Poll</h4>
-              <p className="text-[14px]">Are you sure you want to delete this question?</p>
+              <p className="text-[14px]">Are you sure you want to delete this poll?</p>
               <small className="text-xs italic">{poll?.title}</small>
             </div>
 

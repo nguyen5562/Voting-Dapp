@@ -1,9 +1,15 @@
-import { PollParams } from '@/utils/types'
+import { createPoll } from '@/services/blockchain'
+import { globalActions } from '@/store/globalSlices'
+import { PollParams, RootState } from '@/utils/types'
 import React, { ChangeEvent, FormEvent, useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
+import { useDispatch, useSelector } from 'react-redux'
+import { toast } from 'react-toastify'
 
 const CreatePoll: React.FC = () => {
-  const createModal = 'scale-0'
+  const dispatch = useDispatch()
+  const { setCreateModal } = globalActions
+  const { wallet, createModal } = useSelector((states: RootState) => states.globalStates)
 
   const [poll, setPoll] = useState<PollParams>({
     image: '',
@@ -17,12 +23,27 @@ const CreatePoll: React.FC = () => {
     e.preventDefault()
 
     if (!poll.image || !poll.title || !poll.description || !poll.startsAt || !poll.endsAt) return
+    if (wallet === '') return toast.warning('Connect wallet first!')
 
     poll.startsAt = new Date(poll.startsAt).getTime()
     poll.endsAt = new Date(poll.endsAt).getTime()
 
-    console.log(poll)
-    closeModal()
+    await toast.promise(
+      new Promise<void>((resolve, reject) => {
+        createPoll(poll)
+          .then((tx) => {
+            closeModal()
+            console.log(tx)
+            resolve(tx)
+          })
+          .catch((error) => reject(error))
+      }),
+      {
+        pending: 'Approve transaction...',
+        success: 'Poll created successfully 👌',
+        error: 'Encountered error 🤯',
+      }
+    )
   }
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -34,6 +55,7 @@ const CreatePoll: React.FC = () => {
   }
 
   const closeModal = () => {
+    dispatch(setCreateModal('scale-0'))
     setPoll({
       image: '',
       title: '',
@@ -48,7 +70,7 @@ const CreatePoll: React.FC = () => {
       className={`fixed top-0 left-0 w-screen h-screen flex items-center justify-center
     bg-black bg-opacity-50 transform z-50 transition-transform duration-300 ${createModal}`}
     >
-      <div className="bg-[#0c0c10] text-[#BBBBBB] shadow-lg shadow-[#1B5CFE] rounded-xl w-11/12 md:w-2/5 h-7/12 p-6">
+      <div className="bg-[#1c1c2b] text-[#BBBBBB] shadow-lg shadow-[#1B5CFE] rounded-xl w-11/12 md:w-2/5 h-7/12 p-6">
         <div className="flex flex-col">
           <div className="flex flex-row justify-between items-center">
             <p className="font-semibold">Add Poll</p>

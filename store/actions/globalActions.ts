@@ -26,13 +26,7 @@ export const globalActions = {
   setPoll: (state: GlobalState, action: PayloadAction<PollStruct>) => {
     state.poll = action.payload
   },
-  setGroup: (state: GlobalState, action: PayloadAction<any>) => {
-    state.group = action.payload
-  },
   setContestants: (state: GlobalState, action: PayloadAction<ContestantStruct[]>) => {
     state.contestants = action.payload
-  },
-  setCurrentUser: (state: GlobalState, action: PayloadAction<any>) => {
-    state.currentUser = action.payload
   },
 }
