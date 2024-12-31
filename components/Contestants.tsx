@@ -12,7 +12,7 @@ const Contestants: React.FC<{ contestants: ContestantStruct[]; poll: PollStruct 
     <div className="space-y-2">
       <h1 className="text-center text-[48px] font-[600px]">Contestants</h1>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 pb-7 gap-[62px] sm:w-2/3 mx-auto">
+      <div className="grid grid-cols-1 xl:grid-cols-2 pb-7 gap-[62px] sm:w-2/3 xl:w-11/12 mx-auto">
         {contestants.map((contestant, i) => (
           <Contestant poll={poll} contestant={contestant} key={i} />
         ))}
