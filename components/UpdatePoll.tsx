@@ -6,11 +6,15 @@ import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
 import { FaTimes } from 'react-icons/fa'
 import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'react-toastify'
+import Image from 'next/image'
+import { uploadFile } from '@/services/pinata'
 
 const UpdatePoll: React.FC<{ pollData: PollStruct }> = ({ pollData }) => {
   const dispatch = useDispatch()
   const { setUpdateModal } = globalActions
   const { wallet, updateModal } = useSelector((states: RootState) => states.globalStates)
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const [poll, setPoll] = useState<PollParams>({
     image: '',
@@ -58,6 +62,31 @@ const UpdatePoll: React.FC<{ pollData: PollStruct }> = ({ pollData }) => {
         error: 'Encountered error 🤯',
       }
     )
+  }
+
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return
+    const file = e.target.files[0]
+
+    setIsLoading(true);
+
+    try {
+      const result = await uploadFile(file)
+      if (result.success) {
+        setPoll((prev) => ({
+          ...prev,
+          image: result.pinataUrl || '',
+        }));
+        toast.success('Image uploaded successfully!')
+      } else {
+        toast.error('Failed to upload image')
+      }
+    } catch (error) {
+      toast.error('Error uploading image')
+      console.error(error)
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -142,7 +171,38 @@ const UpdatePoll: React.FC<{ pollData: PollStruct }> = ({ pollData }) => {
               />
             </div>
 
-            <div className="py-4 w-full border border-[#212D4A] rounded-full flex items-center px-4 mb-3 mt-2">
+            <div className="py-4 w-full border border-[#212D4A] rounded-lg flex items-center px-4 mb-3 mt-2 gap-2">
+              <label className="cursor-pointer bg-[#212D4A] text-white text-sm px-4 py-2 rounded-md hover:bg-[#1F2C48] transition-all">
+                Upload Image
+                <input
+                  type="file"
+                  className="hidden"
+                  name="image"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  required
+                />
+              </label>
+
+              {isLoading && (
+                <div className="mt-2 flex justify-center items-center rounded-md overflow-hidden shadow-md ml-auto animate-spin">
+                  <div className="w-8 h-8 border-4 border-t-transparent border-[#212D4A] rounded-full" />
+                </div>
+              )}
+
+              {poll.image && !isLoading && (
+                <div className="mt-2 relative w-32 h-32 border border-[#212D4A] rounded-md overflow-hidden shadow-md ml-auto">
+                  <Image
+                    src={poll.image}
+                    alt="Preview"
+                    fill
+                    style={{ objectFit: 'cover' }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* <div className="py-4 w-full border border-[#212D4A] rounded-full flex items-center px-4 mb-3 mt-2">
               <input
                 placeholder="Banner URL"
                 type="url"
@@ -153,7 +213,7 @@ const UpdatePoll: React.FC<{ pollData: PollStruct }> = ({ pollData }) => {
                 onChange={handleChange}
                 required
               />
-            </div>
+            </div> */}
 
             <div className="py-4 w-full border border-[#212D4A] rounded-xl flex items-center px-4 h-20 mt-2">
               <textarea

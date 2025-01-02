@@ -21,7 +21,7 @@ const getEthereumContract = async () => {
   const accounts = await ethereum?.request?.({ method: 'eth_accounts' })
   const provider = accounts?.[0]
     ? new ethers.providers.Web3Provider(ethereum)
-    : new ethers.providers.JsonRpcProvider(process.env.NEXT_APP_RPC_URL)
+    : new ethers.providers.JsonRpcProvider(process.env.NEXT_PUBLIC_RPC_URL)
   const wallet = accounts?.[0] ? null : ethers.Wallet.createRandom()
   const signer = provider.getSigner(accounts?.[0] ? undefined : wallet?.address)
 
