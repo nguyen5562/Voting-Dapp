@@ -100,7 +100,7 @@ const ContestPoll: React.FC<{ poll: PollStruct }> = ({ poll }) => {
           </div>
 
           <form
-            onClick={handleSubmit}
+            onSubmit={handleSubmit}
             className="flex flex-col justify-center items-start rounded-xl mt-5 mb-5"
           >
             <div className="py-4 w-full border border-[#212D4A] rounded-full flex items-center px-4 mb-3 mt-2">
